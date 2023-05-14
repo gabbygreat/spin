@@ -41,12 +41,19 @@ class _MyHomePageState extends State<MyHomePage>
     super.initState();
     animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 2),
     );
-    animation = Tween<double>(begin: (0).toDegree(), end: 90.toDegree())
-        .animate(animationController);
+    animation = Tween<double>(begin: (-11).toDegree(), end: 11.toDegree())
+        .animate(animationController)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          animationController.reverse();
+        } else if (status == AnimationStatus.dismissed) {
+          animationController.forward();
+        }
+      });
 
-    // animationController.forward();
+    animationController.forward();
   }
 
   @override
@@ -71,12 +78,15 @@ class _MyHomePageState extends State<MyHomePage>
                     ),
                   ),
                   Align(
-                    alignment: const Alignment(0, -0.2),
-                    child: SizedBox(
-                      height: 100,
-                      width: 150,
-                      child: CustomPaint(
-                        painter: PinPainter(),
+                    alignment: const Alignment(0, 0.6),
+                    child: RotationTransition(
+                      turns: animation,
+                      child: SizedBox(
+                        height: 200,
+                        width: 100,
+                        child: CustomPaint(
+                          painter: PinPainter(),
+                        ),
                       ),
                     ),
                   ),
@@ -88,6 +98,12 @@ class _MyHomePageState extends State<MyHomePage>
       ),
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    animationController.dispose();
+  }
 }
 
 class PinPainter extends CustomPainter {
@@ -98,17 +114,17 @@ class PinPainter extends CustomPainter {
     var paint = Paint()..color = Colors.red;
 
     path.moveTo(size.width / 2, 0);
-    path.lineTo(size.width / 2 - 10, size.height - 10);
+    path.lineTo(size.width / 2 - 10, size.height / 2 - 10);
     path.quadraticBezierTo(
       size.width / 2,
-      size.height,
+      size.height / 2,
       size.width / 2 + 10,
-      size.height - 10,
+      size.height / 2 - 10,
     );
 
     canvas.drawPath(path, paint);
     canvas.drawCircle(
-      Offset(size.width / 2, size.height - 15),
+      Offset(size.width / 2, size.height / 2 - 15),
       5,
       Paint()..color = Colors.white,
     );
@@ -121,18 +137,13 @@ class PinPainter extends CustomPainter {
 class SpinPainter extends CustomPainter {
   List<int> percebt = [0, 72, 54, 36, 18, 0];
 
-  List<Color> getRandomColors() {
-    List<Color> colors = [];
-    math.Random random = math.Random();
-
-    for (int i = 0; i < 6; i++) {
-      int r = random.nextInt(255);
-      int g = random.nextInt(255);
-      int b = random.nextInt(255);
-      colors.add(Color.fromRGBO(r, g, b, 1.0));
-    }
-    return colors;
-  }
+  List<Color> getRandomColors = [
+    Colors.blue,
+    Colors.red,
+    Colors.yellow,
+    Colors.green,
+    Colors.pink,
+  ];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -143,7 +154,7 @@ class SpinPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (int i = 1; i <= 5; i++) {
-      backgroundPaint.color = getRandomColors()[i];
+      backgroundPaint.color = getRandomColors[i - 1];
 
       var sum = percebt.sublist(0, i).reduce(
             (value, element) => value + element,
